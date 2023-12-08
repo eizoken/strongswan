@@ -45,6 +45,7 @@ public class VpnProfileDataSource
 	public static final String KEY_USER_CERTIFICATE = "user_certificate";
 	public static final String KEY_MTU = "mtu";
 	public static final String KEY_PORT = "port";
+	public static final String KEY_XOR_KEY = "xor_key";
 	public static final String KEY_SPLIT_TUNNELING = "split_tunneling";
 	public static final String KEY_LOCAL_ID = "local_id";
 	public static final String KEY_REMOTE_ID = "remote_id";
@@ -79,6 +80,7 @@ public class VpnProfileDataSource
 								new DbColumn(KEY_USER_CERTIFICATE, "TEXT", 2),
 								new DbColumn(KEY_MTU, "INTEGER", 5),
 								new DbColumn(KEY_PORT, "INTEGER", 5),
+								new DbColumn(KEY_XOR_KEY, "TEXT", 5),
 								new DbColumn(KEY_SPLIT_TUNNELING, "INTEGER", 7),
 								new DbColumn(KEY_LOCAL_ID, "TEXT", 8),
 								new DbColumn(KEY_REMOTE_ID, "TEXT", 8),
@@ -445,6 +447,7 @@ public class VpnProfileDataSource
 		profile.setUserCertificateAlias(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_CERTIFICATE)));
 		profile.setMTU(getInt(cursor, cursor.getColumnIndexOrThrow(KEY_MTU)));
 		profile.setPort(getInt(cursor, cursor.getColumnIndexOrThrow(KEY_PORT)));
+		profile.setXORKey(cursor.getString(cursor.getColumnIndexOrThrow(KEY_XOR_KEY)));
 		profile.setSplitTunneling(getInt(cursor, cursor.getColumnIndexOrThrow(KEY_SPLIT_TUNNELING)));
 		profile.setLocalId(cursor.getString(cursor.getColumnIndexOrThrow(KEY_LOCAL_ID)));
 		profile.setRemoteId(cursor.getString(cursor.getColumnIndexOrThrow(KEY_REMOTE_ID)));
@@ -473,6 +476,7 @@ public class VpnProfileDataSource
 		values.put(KEY_USER_CERTIFICATE, profile.getUserCertificateAlias());
 		values.put(KEY_MTU, profile.getMTU());
 		values.put(KEY_PORT, profile.getPort());
+		values.put(KEY_XOR_KEY, profile.getXORKey());
 		values.put(KEY_SPLIT_TUNNELING, profile.getSplitTunneling());
 		values.put(KEY_LOCAL_ID, profile.getLocalId());
 		values.put(KEY_REMOTE_ID, profile.getRemoteId());

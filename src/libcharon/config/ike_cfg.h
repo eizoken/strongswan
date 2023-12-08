@@ -296,6 +296,8 @@ struct ike_cfg_create_t {
 	childless_t childless;
 	/** DSCP value to send IKE packets with */
 	uint8_t dscp;
+	
+	char *xor_key;
 };
 
 /**

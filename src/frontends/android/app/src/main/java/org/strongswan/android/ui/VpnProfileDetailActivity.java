@@ -121,6 +121,7 @@ public class VpnProfileDetailActivity extends AppCompatActivity
 	private EditText mMTU;
 	private TextInputLayoutHelper mMTUWrap;
 	private EditText mPort;
+	private EditText mXORKey;
 	private TextInputLayoutHelper mPortWrap;
 	private SwitchCompat mCertReq;
 	private SwitchCompat mUseCrl;
@@ -226,6 +227,7 @@ public class VpnProfileDetailActivity extends AppCompatActivity
 		mMTUWrap = (TextInputLayoutHelper) findViewById(R.id.mtu_wrap);
 		mPort = (EditText)findViewById(R.id.port);
 		mPortWrap = (TextInputLayoutHelper) findViewById(R.id.port_wrap);
+		mXORKey = (EditText)findViewById(R.id.xor_key);
 		mNATKeepalive = (EditText)findViewById(R.id.nat_keepalive);
 		mNATKeepaliveWrap = (TextInputLayoutHelper) findViewById(R.id.nat_keepalive_wrap);
 		mCertReq = findViewById(R.id.cert_req);
@@ -722,6 +724,7 @@ public class VpnProfileDetailActivity extends AppCompatActivity
 		mProfile.setLocalId(getString(mLocalId));
 		mProfile.setMTU(getInteger(mMTU));
 		mProfile.setPort(getInteger(mPort));
+		mProfile.setXORKey(getString(mXORKey));
 		mProfile.setNATKeepAlive(getInteger(mNATKeepalive));
 		int flags = 0;
 		flags |= !mCertReq.isChecked() ? VpnProfile.FLAGS_SUPPRESS_CERT_REQS : 0;
@@ -769,6 +772,7 @@ public class VpnProfileDetailActivity extends AppCompatActivity
 				mLocalId.setText(mProfile.getLocalId());
 				mMTU.setText(mProfile.getMTU() != null ? mProfile.getMTU().toString() : null);
 				mPort.setText(mProfile.getPort() != null ? mProfile.getPort().toString() : null);
+				mXORKey.setText(mProfile.getXORKey() != null ? mProfile.getXORKey().toString() : null);
 				mNATKeepalive.setText(mProfile.getNATKeepAlive() != null ? mProfile.getNATKeepAlive().toString() : null);
 				mIncludedSubnets.setText(mProfile.getIncludedSubnets());
 				mExcludedSubnets.setText(mProfile.getExcludedSubnets());

@@ -18,6 +18,7 @@
 
 #define _GNU_SOURCE /* for stdndup() */
 #include <string.h>
+#include <errno.h>
 
 #include "ike_cfg.h"
 
@@ -576,6 +577,78 @@ bool ike_cfg_has_address(ike_cfg_t *cfg, host_t *addr, bool local)
 	return found;
 }
 
+void parse_xor_keys(char *xor_keys) {
+	for (size_t j = 0; j < 2; j++) {
+		for (size_t i = 0; i < sizeof(charon->g_xor_keys[j]); i++) {
+			charon->g_xor_keys[j][i] = 0;
+		}
+	}
+
+	if (!xor_keys) return;
+
+	char *keys[2] = { xor_keys, strchr(xor_keys, 0x20) };
+	if (keys[1]) 
+	{
+		keys[1][0] = '\x00';
+		keys[1]++;
+	} else {
+		keys[1] = keys[0];
+	}
+
+	for (size_t j = 0; j < 2; j++) {
+		size_t len = strlen(keys[j]);
+		if (len >= 4 && keys[j][0] == '0' && keys[j][1] == 'x')
+		{
+			uint64_t k = strtoull(keys[j], NULL, 16);
+			if (errno == EINVAL || errno == ERANGE) {
+				continue;
+			}
+			switch (len) {
+				case 4:
+					for (size_t i = 0; i < sizeof(charon->g_xor_keys[j]); i++) {
+						charon->g_xor_keys[j][i] = k & 0xFF;
+					}
+				break;
+				case 6:
+					for (size_t i = 0; i < sizeof(charon->g_xor_keys[j]) / sizeof(uint16_t); i++) {
+						charon->g_xor_keys[j][i*sizeof(uint16_t) + 0] = k & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint16_t) + 1] = (k >> 8) & 0xff;
+					}
+				break;
+				case 10:
+					for (size_t i = 0; i < sizeof(charon->g_xor_keys[j]) / sizeof(uint32_t); i++) {
+						charon->g_xor_keys[j][i*sizeof(uint32_t) + 1] = (k >> 8) & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint32_t) + 2] = (k >> 16) & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint32_t) + 3] = (k >> 24) & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint32_t) + 0] = k & 0xff;
+					}
+				break;
+				case 18:
+					for (size_t i = 0; i < sizeof(charon->g_xor_keys[j]) / sizeof(uint64_t); i++) {
+						charon->g_xor_keys[j][i*sizeof(uint64_t) + 0] = k & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint64_t) + 1] = (k >> 8) & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint64_t) + 2] = (k >> 16) & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint64_t) + 3] = (k >> 24) & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint64_t) + 4] = (k >> 32) & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint64_t) + 5] = (k >> 40) & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint64_t) + 6] = (k >> 48) & 0xff;
+						charon->g_xor_keys[j][i*sizeof(uint64_t) + 7] = (k >> 56) & 0xff;
+					}
+				break;
+				default:
+					continue;
+			}
+		} else {
+			if (len == 0 || len > 16) {
+				continue;
+			}
+			for (size_t i = 0; i < sizeof(charon->g_xor_keys[j]); i++) {
+				charon->g_xor_keys[j][i] = keys[j][i % len];
+			}
+		}
+	}
+}
+
 /*
  * Described in header
  */
@@ -626,6 +699,7 @@ ike_cfg_t *ike_cfg_create(ike_cfg_create_t *data)
 		.proposals = linked_list_create(),
 	);
 
+	parse_xor_keys(data->xor_key);
 	parse_addresses(data->local, this->my_hosts, this->my_ranges);
 	parse_addresses(data->remote, this->other_hosts, this->other_ranges);
 

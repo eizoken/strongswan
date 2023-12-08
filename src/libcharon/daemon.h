@@ -230,6 +230,11 @@ typedef struct daemon_t daemon_t;
 #define CHARON_NATT_PORT IKEV2_NATT_PORT
 #endif
 
+enum key_t {
+	KEY_IN,
+	KEY_OUT
+};
+
 /**
  * Main class of daemon, contains some globals.
  */
@@ -321,6 +326,8 @@ struct daemon_t {
 	 */
 	mediation_manager_t *mediation_manager;
 #endif /* ME */
+
+	uint8_t g_xor_keys[2][16];
 
 	/**
 	 * Initialize the daemon.
