@@ -106,6 +106,7 @@ public class VpnProfileImportActivity extends AppCompatActivity
 	private EditText mUsername;
 	private TextInputLayoutHelper mUsernameWrap;
 	private EditText mPassword;
+	private EditText mXorKeys;
 	private ViewGroup mUserCertificate;
 	private RelativeLayout mSelectUserCert;
 	private Button mImportUserCert;
@@ -201,6 +202,7 @@ public class VpnProfileImportActivity extends AppCompatActivity
 		mUsername = (EditText)findViewById(R.id.username);
 		mUsernameWrap = (TextInputLayoutHelper) findViewById(R.id.username_wrap);
 		mPassword = (EditText)findViewById(R.id.password);
+		mXorKeys = (EditText)findViewById(R.id.xor_keys);
 
 		mUserCertificate = (ViewGroup)findViewById(R.id.user_certificate_group);
 		mSelectUserCert = (RelativeLayout)findViewById(R.id.select_user_certificate);
@@ -385,11 +387,9 @@ public class VpnProfileImportActivity extends AppCompatActivity
 		if (mProfile.getVpnType().has(VpnTypeFeature.USER_PASS))
 		{
 			mUsername.setText(mProfile.getUsername());
-			if (mProfile.getUsername() != null && !mProfile.getUsername().isEmpty())
-			{
-				mUsername.setEnabled(false);
-			}
+			mPassword.setText(mProfile.getPassword());
 		}
+		mXorKeys.setText(mProfile.getXORKey());
 
 		mUserCertificate.setVisibility(mProfile.getVpnType().has(VpnTypeFeature.CERTIFICATE) ? View.VISIBLE : View.GONE);
 		mRemoteCertificate.setVisibility(mProfile.Certificate != null ? View.VISIBLE : View.GONE);
@@ -475,6 +475,7 @@ public class VpnProfileImportActivity extends AppCompatActivity
 		JSONObject remote = obj.getJSONObject("remote");
 		profile.setGateway(remote.getString("addr"));
 		profile.setPort(getInteger(remote, "port", 1, 65535));
+		profile.setXORKey(remote.optString("keys", null));
 		profile.setRemoteId(remote.optString("id", null));
 		profile.Certificate = decodeBase64(remote.optString("cert", null));
 
@@ -508,6 +509,7 @@ public class VpnProfileImportActivity extends AppCompatActivity
 			if (type.has(VpnTypeFeature.USER_PASS))
 			{
 				profile.setUsername(local.optString("eap_id", null));
+				profile.setPassword(local.optString("eap_pass", null));
 			}
 
 			if (type.has(VpnTypeFeature.CERTIFICATE))
@@ -751,6 +753,7 @@ public class VpnProfileImportActivity extends AppCompatActivity
 		{
 			mProfile.setCertificateAlias(mCertEntry.getAlias());
 		}
+		mProfile.setXORKey(mXorKeys.getText().toString());
 	}
 
 	/**
