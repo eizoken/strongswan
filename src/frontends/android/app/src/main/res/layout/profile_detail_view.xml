@@ -299,6 +299,22 @@
                 </org.strongswan.android.ui.widget.TextInputLayoutHelper>
 
                 <org.strongswan.android.ui.widget.TextInputLayoutHelper
+                    android:id="@+id/xor_key_wrap"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Key(s)"
+                    app:helper_text="Separated by spaces, &quot;key_in key_out&quot; or &quot;key_all&quot;&#xA;Key must be a byte, word, dword or qword, like: 0xab/0xabcd/0x1234abcd/0x12345678abcd1234 or string of no more than 16 characters in length" >
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/xor_key"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        android:inputType="textNoSuggestions" />
+
+                </org.strongswan.android.ui.widget.TextInputLayoutHelper>
+
+                <org.strongswan.android.ui.widget.TextInputLayoutHelper
                     android:id="@+id/nat_keepalive_wrap"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

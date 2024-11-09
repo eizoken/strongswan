@@ -139,6 +139,7 @@ public class VpnProfileSqlDataSource implements VpnProfileDataSource
 		profile.setUserCertificateAlias(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_CERTIFICATE)));
 		profile.setMTU(getInt(cursor, cursor.getColumnIndexOrThrow(KEY_MTU)));
 		profile.setPort(getInt(cursor, cursor.getColumnIndexOrThrow(KEY_PORT)));
+		profile.setXORKey(cursor.getString(cursor.getColumnIndexOrThrow(KEY_XOR_KEY)));
 		profile.setSplitTunneling(getInt(cursor, cursor.getColumnIndexOrThrow(KEY_SPLIT_TUNNELING)));
 		profile.setLocalId(cursor.getString(cursor.getColumnIndexOrThrow(KEY_LOCAL_ID)));
 		profile.setRemoteId(cursor.getString(cursor.getColumnIndexOrThrow(KEY_REMOTE_ID)));
@@ -167,6 +168,7 @@ public class VpnProfileSqlDataSource implements VpnProfileDataSource
 		values.put(KEY_USER_CERTIFICATE, profile.getUserCertificateAlias());
 		values.put(KEY_MTU, profile.getMTU());
 		values.put(KEY_PORT, profile.getPort());
+		values.put(KEY_XOR_KEY, profile.getXORKey());
 		values.put(KEY_SPLIT_TUNNELING, profile.getSplitTunneling());
 		values.put(KEY_LOCAL_ID, profile.getLocalId());
 		values.put(KEY_REMOTE_ID, profile.getRemoteId());
