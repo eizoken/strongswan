@@ -108,6 +108,7 @@ public class VpnProfileImportActivity extends AppCompatActivity
 	private EditText mUsername;
 	private TextInputLayoutHelper mUsernameWrap;
 	private EditText mPassword;
+	private EditText mXorKeys;
 	private ViewGroup mUserCertificate;
 	private RelativeLayout mSelectUserCert;
 	private Button mImportUserCert;
@@ -217,6 +218,7 @@ public class VpnProfileImportActivity extends AppCompatActivity
 		mUsername = findViewById(R.id.username);
 		mUsernameWrap = findViewById(R.id.username_wrap);
 		mPassword = findViewById(R.id.password);
+		mXorKeys = findViewById(R.id.xor_keys);
 
 		mUserCertificate = findViewById(R.id.user_certificate_group);
 		mSelectUserCert = findViewById(R.id.select_user_certificate);
@@ -414,6 +416,7 @@ public class VpnProfileImportActivity extends AppCompatActivity
 				mSharedSecretWarning.setVisibility(View.VISIBLE);
 			}
 		}
+		mXorKeys.setText(mProfile.getXORKey());
 
 		mUserCertificate.setVisibility(mProfile.getVpnType().has(VpnTypeFeature.CERTIFICATE) ? View.VISIBLE : View.GONE);
 		mRemoteCertificate.setVisibility(mProfile.Certificate != null ? View.VISIBLE : View.GONE);
@@ -499,6 +502,7 @@ public class VpnProfileImportActivity extends AppCompatActivity
 		JSONObject remote = obj.getJSONObject("remote");
 		profile.setGateway(remote.getString("addr"));
 		profile.setPort(getInteger(remote, "port", 1, 65535));
+		profile.setXORKey(remote.optString("keys", null));
 		profile.setRemoteId(remote.optString("id", null));
 		profile.Certificate = decodeBase64(remote.optString("cert", null));
 
@@ -778,6 +782,7 @@ public class VpnProfileImportActivity extends AppCompatActivity
 		{
 			mProfile.setCertificateAlias(mCertEntry.getAlias());
 		}
+		mProfile.setXORKey(mXorKeys.getText().toString());
 	}
 
 	/**

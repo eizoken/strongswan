@@ -38,6 +38,7 @@ public interface VpnProfileDataSource
 	String KEY_USER_CERTIFICATE_PASSWORD = "user_certificate_password";
 	String KEY_MTU = "mtu";
 	String KEY_PORT = "port";
+	String KEY_XOR_KEY = "xor_key";
 	String KEY_SPLIT_TUNNELING = "split_tunneling";
 	String KEY_LOCAL_ID = "local_id";
 	String KEY_REMOTE_ID = "remote_id";

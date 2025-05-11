@@ -800,6 +800,7 @@ static job_requeue_t initiate(private_android_service_t *this)
 										 NULL);
 	ike.remote_port = this->settings->get_int(this->settings, "connection.port",
 											  IKEV2_UDP_PORT);
+	ike.xor_key = this->settings->get_str(this->settings, "connection.xor_key", NULL);
 	ike.no_certreq = !this->settings->get_bool(this->settings,
 											   "connection.certreq", TRUE);
 	ike_cfg = ike_cfg_create(&ike);

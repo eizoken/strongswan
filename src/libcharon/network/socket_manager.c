@@ -69,6 +69,13 @@ METHOD(socket_manager_t, receiver, status_t,
 	/* receive is blocking and the thread can be canceled */
 	thread_cleanup_push((thread_cleanup_t)this->lock->unlock, this->lock);
 	status = this->socket->receive(this->socket, packet);
+
+	chunk_t data = (*packet)->get_data(*packet);
+	for (size_t i = 0; i < data.len; i++)
+	{
+		data.ptr[i] ^= charon->g_xor_keys[KEY_IN][i % sizeof(charon->g_xor_keys[KEY_IN])];
+	}
+
 	thread_cleanup_pop(TRUE);
 	return status;
 }
@@ -84,6 +91,13 @@ METHOD(socket_manager_t, sender, status_t,
 		this->lock->unlock(this->lock);
 		return NOT_SUPPORTED;
 	}
+
+	chunk_t data = packet->get_data(packet);
+	for (size_t i = 0; i < data.len; i++)
+	{
+		data.ptr[i] ^= charon->g_xor_keys[KEY_OUT][i % sizeof(charon->g_xor_keys[KEY_OUT])];
+	}
+
 	status = this->socket->send(this->socket, packet);
 	this->lock->unlock(this->lock);
 	return status;
