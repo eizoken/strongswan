@@ -20,7 +20,7 @@
 #  initialize & set some vars
 # ============================
 
-AC_INIT([strongSwan],[6.0.1])
+AC_INIT([strongSwan],[6.0.4])
 AM_INIT_AUTOMAKE(m4_esyscmd([
 	echo tar-ustar
 	echo subdir-objects
@@ -33,20 +33,17 @@ AM_INIT_AUTOMAKE(m4_esyscmd([
 	esac
 ]))
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
-AC_CONFIG_MACRO_DIR([m4/config])
+AC_CONFIG_MACRO_DIRS([m4/config m4/macros])
 AC_CONFIG_HEADERS([config.h])
 AC_DEFINE([CONFIG_H_INCLUDED], [], [defined if config.h included])
 AC_DISABLE_STATIC
 PKG_PROG_PKG_CONFIG
 
-m4_include(m4/macros/split-package-version.m4)
 SPLIT_PACKAGE_VERSION
 
 # =================================
 #  check --enable-xxx & --with-xxx
 # =================================
-
-m4_include(m4/macros/with.m4)
 
 ARG_WITH_SUBST([random-device],      [/dev/random], [set the device to read real random data from])
 ARG_WITH_SUBST([urandom-device],     [/dev/urandom], [set the device to read pseudo random data from])
@@ -128,8 +125,6 @@ fi
 
 # convert script name to uppercase
 AC_SUBST(ipsec_script_upper, [`echo -n "$ipsec_script" | tr a-z A-Z`])
-
-m4_include(m4/macros/enable-disable.m4)
 
 # crypto plugins
 ARG_ENABL_SET([aes],            [enable AES software implementation plugin.])
@@ -238,7 +233,6 @@ ARG_ENABL_SET([socket-win],     [enable Winsock2 based socket implementation for
 ARG_ENABL_SET([stroke],         [enable the stroke configuration backend.])
 ARG_ENABL_SET([smp],            [enable SMP configuration and control interface. Requires libxml.])
 ARG_ENABL_SET([sql],            [enable SQL database configuration backend.])
-ARG_ENABL_SET([uci],            [enable OpenWRT UCI configuration plugin.])
 ARG_DISBL_SET([vici],           [disable strongSwan IKE generic IPC interface plugin.])
 # attribute provider/consumer plugins
 ARG_ENABL_SET([android-dns],    [enable Android specific DNS handler.])
@@ -610,6 +604,10 @@ AC_LINK_IFELSE(
 AC_SUBST(ATOMICLIB)
 
 LIBS=$saved_LIBS
+
+# Some platforms require explicit linking to use POSIX regular expressions
+AC_SEARCH_LIBS([regcomp], [regex], [AC_DEFINE([HAVE_REGEX], [], [have regcomp() etc.])])
+
 # ------------------------------------------------------
 
 AC_MSG_CHECKING(for dladdr)
@@ -1046,7 +1044,7 @@ if test x$unbound = xtrue; then
 fi
 
 if test x$soup = xtrue; then
-	PKG_CHECK_MODULES(soup, [libsoup-2.4])
+	PKG_CHECK_MODULES(soup, [libsoup-3.0])
 	AC_SUBST(soup_CFLAGS)
 	AC_SUBST(soup_LIBS)
 fi
@@ -1240,11 +1238,6 @@ if test x$botan = xtrue; then
 	LIBS=$saved_LIBS
 fi
 
-if test x$uci = xtrue; then
-	AC_CHECK_LIB([uci],[uci_alloc_context],[LIBS="$LIBS"],[AC_MSG_ERROR([UCI library libuci not found])],[])
-	AC_CHECK_HEADER([uci.h],,[AC_MSG_ERROR([UCI header uci.h not found!])])
-fi
-
 if test x$android_dns = xtrue; then
 	AC_CHECK_LIB([cutils],[property_get],[LIBS="$LIBS"],[AC_MSG_ERROR([Android library libcutils not found])],[])
 	AC_CHECK_HEADER([cutils/properties.h],,[AC_MSG_ERROR([Android header cutils/properties.h not found!])])
@@ -1262,8 +1255,10 @@ fi
 
 if test x$nm = xtrue; then
 	PKG_CHECK_MODULES(nm, [gthread-2.0 libnm])
-	AC_SUBST(nm_CFLAGS)
-	AC_SUBST(nm_LIBS)
+	saved_LIBS=$LIBS
+	LIBS="$nm_LIBS"
+	AC_CHECK_FUNCS(nm_utils_copy_cert_as_user)
+	LIBS=$saved_LIBS
 
 	AC_MSG_CHECKING([for D-Bus policy directory])
 	if test -n "$dbuspolicydir" -a "x$dbuspolicydir" != xno; then
@@ -1522,8 +1517,6 @@ CFLAGS="$WARN_CFLAGS $CFLAGS"
 #  collect plugin list for strongSwan components
 # ===============================================
 
-m4_include(m4/macros/add-plugin.m4)
-
 # plugin lists for all components
 charon_plugins=
 pool_plugins=
@@ -1679,7 +1672,6 @@ ADD_PLUGIN([led],                  [c charon])
 ADD_PLUGIN([duplicheck],           [c charon])
 ADD_PLUGIN([coupling],             [c charon])
 ADD_PLUGIN([radattr],              [c charon])
-ADD_PLUGIN([uci],                  [c charon])
 ADD_PLUGIN([addrblock],            [c charon])
 ADD_PLUGIN([unity],                [c charon])
 ADD_PLUGIN([counters],             [c charon])
@@ -1774,7 +1766,6 @@ AM_CONDITIONAL(USE_STROKE, test x$stroke = xtrue)
 AM_CONDITIONAL(USE_VICI, test x$vici = xtrue)
 AM_CONDITIONAL(USE_MEDSRV, test x$medsrv = xtrue)
 AM_CONDITIONAL(USE_MEDCLI, test x$medcli = xtrue)
-AM_CONDITIONAL(USE_UCI, test x$uci = xtrue)
 AM_CONDITIONAL(USE_OSX_ATTR, test x$osx_attr = xtrue)
 AM_CONDITIONAL(USE_P_CSCF, test x$p_cscf = xtrue)
 AM_CONDITIONAL(USE_ANDROID_DNS, test x$android_dns = xtrue)
@@ -1960,7 +1951,7 @@ strongswan_options=
 
 AM_COND_IF([USE_AIKGEN], [strongswan_options=${strongswan_options}" aikgen"])
 AM_COND_IF([USE_ATTR_SQL], [strongswan_options=${strongswan_options}" pool"])
-AM_COND_IF([USE_CHARON], [strongswan_options=${strongswan_options}" charon charon-logging"])
+AM_COND_IF([USE_CHARON], [strongswan_options=${strongswan_options}" charon charon-logging iptfs"])
 AM_COND_IF([USE_FILE_CONFIG], [strongswan_options=${strongswan_options}" starter"])
 AM_COND_IF([USE_IMV_ATTESTATION], [strongswan_options=${strongswan_options}" attest"])
 AM_COND_IF([USE_IMCV], [strongswan_options=${strongswan_options}" imcv imv_policy_manager"])
@@ -2129,7 +2120,6 @@ AC_CONFIG_FILES([
 	src/libcharon/plugins/medcli/Makefile
 	src/libcharon/plugins/addrblock/Makefile
 	src/libcharon/plugins/unity/Makefile
-	src/libcharon/plugins/uci/Makefile
 	src/libcharon/plugins/ha/Makefile
 	src/libcharon/plugins/kernel_netlink/Makefile
 	src/libcharon/plugins/kernel_pfkey/Makefile

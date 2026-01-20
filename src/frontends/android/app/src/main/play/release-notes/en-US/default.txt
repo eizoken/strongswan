@@ -1,14 +1,16 @@
-# 2.5.5 #
+# 2.6.2 #
 
-- Fix initiating managed profiles as Always-on VPN
+- Fix edge-to-edge layout issues with settings and app selection
 
-# 2.5.4 #
+# 2.6.1 #
 
-- Fix issues when reestablishing the connection
+- Update OpenSSL to support ML-KEM (requires explicit configuration in proposals)
+- Fix vulnerability in eap-mschapv2 plugin
+- Fix filename when exporting the log
 
-# 2.5.3 #
+# 2.6.0 #
 
-- Add support for distributing passwords in managed profiles
-- Add support for importing profile files with passwords
-- Fix crash when editing password of managed profiles
-- Fix crash when re-importing an already existing profile
+- Allow preselecting a user certificate via alias in managed profiles
+- Allow selecting a user certificate for managed profiles
+- Fix reading split-tunneling settings in managed profiles
+- Adapt to edge-to-edge display

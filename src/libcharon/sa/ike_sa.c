@@ -1628,7 +1628,7 @@ METHOD(ike_sa_t, initiate, status_t,
 	if (child_cfg)
 	{
 		/* normal IKE_SA with CHILD_SA */
-		this->task_manager->queue_child(this->task_manager, child_cfg, args);
+		this->task_manager->queue_child(this->task_manager, child_cfg, args, NULL);
 #ifdef ME
 		if (this->peer_cfg->get_mediated_by(this->peer_cfg))
 		{
@@ -1778,10 +1778,27 @@ METHOD(ike_sa_t, get_if_id, uint32_t,
 	return inbound ? this->if_id_in : this->if_id_out;
 }
 
+/**
+ * Sort CHILD_SAs by config and CPU ID so SAs without ID are enumerated first.
+ */
+static int child_sa_sort(const void *a_pub, const void *b_pub, void *user)
+{
+	child_sa_t *a = (child_sa_t*)a_pub, *b = (child_sa_t*)b_pub;
+	child_cfg_t *cfg = a->get_config(a);
+
+	if (!cfg->equals(cfg, b->get_config(b)))
+	{	/* use the unique IDs of unrelated SAs to maintain insertion order */
+		return a->get_unique_id(a) - b->get_unique_id(b);
+	}
+	/* otherwise use the CPU ID, making sure an SA without ID comes first */
+	return a->get_cpu(a) == CPU_ID_MAX ? -1 : a->get_cpu(a) - b->get_cpu(b);
+}
+
 METHOD(ike_sa_t, add_child_sa, void,
 	private_ike_sa_t *this, child_sa_t *child_sa)
 {
 	array_insert_create(&this->child_sas, ARRAY_TAIL, child_sa);
+	array_sort(this->child_sas, child_sa_sort, NULL);
 	charon->child_sa_manager->add(charon->child_sa_manager,
 								  child_sa, &this->public);
 }
@@ -2119,20 +2136,12 @@ static status_t reestablish_children(private_ike_sa_t *this, ike_sa_t *new,
 		}
 		if (action & ACTION_START)
 		{
-			child_init_args_t args = {
-				.reqid = child_sa->get_reqid_ref(child_sa),
-				.label = child_sa->get_label(child_sa),
-			};
 			child_cfg = child_sa->get_config(child_sa);
 			DBG1(DBG_IKE, "restarting CHILD_SA %s",
 				 child_cfg->get_name(child_cfg));
 			other->task_manager->queue_child(other->task_manager,
 											 child_cfg->get_ref(child_cfg),
-											 &args);
-			if (args.reqid)
-			{
-				charon->kernel->release_reqid(charon->kernel, args.reqid);
-			}
+											 NULL, child_sa);
 		}
 	}
 	enumerator->destroy(enumerator);
@@ -2332,6 +2341,9 @@ static bool redirect_established(private_ike_sa_t *this, identification_t *to)
 	{
 		return FALSE;
 	}
+	/* mark the SA so it won't get reused even though it's established */
+	set_condition(this, COND_REDIRECTED, TRUE);
+
 	new_priv = (private_ike_sa_t*)new;
 	new->set_peer_cfg(new, this->peer_cfg);
 	new_priv->redirected_from = this->other_host->clone(this->other_host);

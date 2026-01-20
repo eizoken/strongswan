@@ -406,12 +406,16 @@ extern enum_name_t *ike_sa_state_names;
 struct child_init_args_t {
 	/** Reqid to use for CHILD_SA, 0 to assign automatically */
 	uint32_t reqid;
+	/** Optional CPU ID to use for CHILD_SA, CPU_ID_MAX if unspecified */
+	uint32_t cpu;
 	/** Optional source of triggering packet */
 	traffic_selector_t *src;
 	/** Optional destination of triggering packet */
 	traffic_selector_t *dst;
 	/** Optional security label of triggering packet */
 	sec_label_t *label;
+	/** Optional sequence number associated with the acquire triggering the SA */
+	uint32_t seq;
 };
 
 /**

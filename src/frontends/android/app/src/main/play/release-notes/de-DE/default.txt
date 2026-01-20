@@ -1,14 +1,15 @@
-# 2.5.5 #
+# 2.6.2 #
 
-- Fixt den Start von verwalteten Profilen als Always-on VPN
+- Fixt randlose Anzeige von Settings und App-Auswahl
 
-# 2.5.4 #
+# 2.6.1 #
 
-- Fixt Probleme beim Wiederherstellen der Verbindung
+- Aktualisiert OpenSSL, um ML-KEM zu unterstützen (muss explizit in Proposal konfiguriert werden)
+- Behebt eine Schwachstelle im eap-mschapv2 Plugin
+- Korrigiert den Dateinamen beim Log-Export
 
-# 2.5.3 #
+# 2.6.0 #
 
-- Unterstützt die Verteilung von Passwörtern in verwalteten Profilen
-- Unterstützt den Import von Profil-Dateien mit Passwörtern
-- Fixt einen Crash beim Ändern des Passworts von verwalteten Profilen
-- Fixt einen Crash beim Importieren eines bereit existierenden Profils
+- Auswahl von Benutzer-Zertifikaten in verwalteten Profilen (Vorauswahl via Alias ist möglich)
+- Fixt Lesen von Split-Tunneling Settings in verwalteten Profilen
+- Anpassungen für randlose Anzeige

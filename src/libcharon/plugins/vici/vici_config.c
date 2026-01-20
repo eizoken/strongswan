@@ -583,6 +583,9 @@ static void log_child_data(child_data_t *data, char *name)
 	DBG2(DBG_CFG, "   proposals = %#P", data->proposals);
 	DBG2(DBG_CFG, "   local_ts = %#R", data->local_ts);
 	DBG2(DBG_CFG, "   remote_ts = %#R", data->remote_ts);
+	DBG2(DBG_CFG, "   per_cpu_sas = %s",
+		 has_opt(cfg, OPT_PER_CPU_SAS_ENCAP) ? "encap" :
+		 has_opt(cfg, OPT_PER_CPU_SAS) ? "1" : "0");
 	DBG2(DBG_CFG, "   hw_offload = %N", hw_offload_names, cfg->hw_offload);
 	DBG2(DBG_CFG, "   sha256_96 = %u", has_opt(cfg, OPT_SHA256_96));
 	DBG2(DBG_CFG, "   copy_df = %u", !has_opt(cfg, OPT_NO_COPY_DF));
@@ -901,6 +904,7 @@ CALLBACK(parse_mode, bool,
 		{ "tunnel",				MODE_TUNNEL		},
 		{ "transport",			MODE_TRANSPORT	},
 		{ "transport_proxy",	MODE_TRANSPORT	},
+		{ "iptfs",				MODE_IPTFS		},
 		{ "beet",				MODE_BEET		},
 		{ "drop",				MODE_DROP		},
 		{ "pass",				MODE_PASS		},
@@ -1058,6 +1062,25 @@ CALLBACK(parse_opt_copy_ecn, bool,
 	child_cfg_option_t *out, chunk_t v)
 {
 	return parse_option(out, OPT_NO_COPY_ECN, v, FALSE);
+}
+
+/**
+ * Parse OPT_PER_CPU_SAS option
+ */
+CALLBACK(parse_opt_cpus, bool,
+	child_cfg_option_t *out, chunk_t v)
+{
+	enum_map_t map[] = {
+		{ "encap",	OPT_PER_CPU_SAS|OPT_PER_CPU_SAS_ENCAP	},
+	};
+	int d;
+
+	if (parse_map(map, countof(map), &d, v))
+	{
+		*out |= d;
+		return TRUE;
+	}
+	return parse_option(out, OPT_PER_CPU_SAS, v, TRUE);
 }
 
 /**
@@ -1486,13 +1509,15 @@ CALLBACK(parse_auth, bool,
  */
 static bool parse_id(auth_cfg_t *cfg, auth_rule_t rule, chunk_t v)
 {
+	identification_t *id;
 	char buf[BUF_LEN];
 
-	if (!vici_stringify(v, buf, sizeof(buf)))
+	if (!vici_stringify(v, buf, sizeof(buf)) ||
+		!(id = identification_create_from_string_with_regex(buf)))
 	{
 		return FALSE;
 	}
-	cfg->add(cfg, rule, identification_create_from_string(buf));
+	cfg->add(cfg, rule, id);
 	return TRUE;
 }
 
@@ -1932,6 +1957,7 @@ CALLBACK(child_kv, bool,
 		{ "if_id_out",			parse_if_id,		&child->cfg.if_id_out				},
 		{ "label",				parse_label,		&child->cfg.label					},
 		{ "label_mode",			parse_label_mode,	&child->cfg.label_mode				},
+		{ "per_cpu_sas",		parse_opt_cpus,		&child->cfg.options					},
 	};
 
 	return parse_rules(rules, countof(rules), name, value,

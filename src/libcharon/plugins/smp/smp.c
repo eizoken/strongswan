@@ -330,12 +330,10 @@ static void request_query_config(xmlTextReaderPtr reader, xmlTextWriterPtr write
 			xmlTextWriterStartElement(writer, "childconfig");
 			xmlTextWriterWriteElement(writer, "name",
 									  child_cfg->get_name(child_cfg));
-			list = child_cfg->get_traffic_selectors(child_cfg, TRUE, NULL,
-													NULL, FALSE);
+			list = child_cfg->get_traffic_selectors(child_cfg, TRUE, NULL);
 			write_networks(writer, "local", list);
 			list->destroy_offset(list, offsetof(traffic_selector_t, destroy));
-			list = child_cfg->get_traffic_selectors(child_cfg, FALSE, NULL,
-													NULL, FALSE);
+			list = child_cfg->get_traffic_selectors(child_cfg, FALSE, NULL);
 			write_networks(writer, "remote", list);
 			list->destroy_offset(list, offsetof(traffic_selector_t, destroy));
 			xmlTextWriterEndElement(writer);
@@ -743,7 +741,7 @@ METHOD(plugin_t, destroy, void,
 /*
  * Described in header file
  */
-plugin_t *smp_plugin_create()
+PLUGIN_DEFINE(smp)
 {
 	struct sockaddr_un unix_addr = { AF_UNIX, IPSEC_PIDDIR "/charon.xml"};
 	private_smp_t *this;
